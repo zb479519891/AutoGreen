@@ -1,0 +1,44 @@
+name: Cleanup old Actions runs
+
+on:
+  schedule:
+    - cron: '0 8 */2 * *'
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    permissions:
+      actions: write
+
+    steps:
+      - name: Delete old workflow runs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          KEEP_RECENT: 2
+        run: |
+          set -euo pipefail
+
+          gh api \
+            --paginate \
+            "repos/${{ github.repository }}/actions/runs?per_page=100" \
+            --jq '.workflow_runs[] | [.id, .created_at, .status] | @tsv' |
+          sort -k2 -r |
+          nl -v1 |
+          while IFS=$'\t' read -r INDEX RUN_ID CREATED_AT STATUS; do
+            # 保留最新 KEEP_RECENT 条
+            if [ "$INDEX" -le "$KEEP_RECENT" ]; then
+              continue
+            fi
+
+            # 不删除正在运行的任务
+            if [ "$STATUS" != "completed" ]; then
+              continue
+            fi
+
+            echo "Deleting workflow run $RUN_ID ($CREATED_AT)"
+            gh api -X DELETE \
+              "repos/${{ github.repository }}/actions/runs/$RUN_ID"
+          done
