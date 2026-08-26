@@ -2,7 +2,7 @@ name: Cleanup old Actions runs
 
 on:
   schedule:
-    - cron: '0 8 */2 * *'
+    - cron: '0 8 */5 * *'
   workflow_dispatch:
 
 jobs:
