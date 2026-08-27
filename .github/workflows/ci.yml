@@ -1,24 +1,27 @@
-name: ci
+name: Daily Commit
 
 on:
-  push:
-    branches:
-      - master
   schedule:
     - cron: "30 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-commit
+  cancel-in-progress: false
 
 jobs:
-  autogreen:
+  commit:
     runs-on: ubuntu-latest
-    steps:
-      - name: Clone repository
-        uses: actions/checkout@v6
 
-      - name: Auto green
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Create daily commit
         run: |
-          git config --local user.email "zhoubin04@gmail.com"
-          git config --local user.name "zb479519891"
-          git remote set-url origin https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
-          git pull --rebase
-          git commit --allow-empty -m "a commit a day keeps your girlfriend away"
+          git config user.name "zb479519891"
+          git config user.email "zhoubin04@gmail.com"
+          git commit --allow-empty -m "chore: daily commit"
           git push
