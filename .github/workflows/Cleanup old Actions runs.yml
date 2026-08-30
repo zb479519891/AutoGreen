@@ -30,7 +30,7 @@ jobs:
           gh api \
             --paginate \
             "repos/${{ github.repository }}/actions/runs?per_page=100" \
-            --jq '.workflow_runs[] | [.id, .created_at, .status] | @tsv' \
+            --jq '.workflow_runs[] | select(.status != "queued" and .status != "in_progress" and .status != "waiting" and .status != "requested" and .status != "pending") | [.id, .created_at, .status] | @tsv' \
             | sort -k2 -r \
             | tail -n +$((KEEP_RECENT + 1)) \
             | while IFS=$'\t' read -r run_id created_at status; do
