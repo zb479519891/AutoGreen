@@ -30,12 +30,12 @@ jobs:
           gh api \
             --paginate \
             "repos/${{ github.repository }}/actions/runs?per_page=100" \
-            --jq '.workflow_runs[] | select(.status == "completed") | [.id, .created_at] | @tsv' \
+            --jq '.workflow_runs[] | [.id, .created_at, .status] | @tsv' \
             | sort -k2 -r \
             | tail -n +$((KEEP_RECENT + 1)) \
-            | while IFS=$'\t' read -r run_id created_at; do
+            | while IFS=$'\t' read -r run_id created_at status; do
                 [ -z "$run_id" ] && continue
-                echo "Deleting workflow run $run_id ($created_at)"
+                echo "Deleting workflow run $run_id ($created_at, status: $status)"
                 gh api -X DELETE \
                   "repos/${{ github.repository }}/actions/runs/$run_id"
               done
