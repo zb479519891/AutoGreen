@@ -1,4 +1,4 @@
-# auto_green
+# AutoGreen
 
 [![Daily Commit](https://github.com/zb479519891/auto_green/actions/workflows/Daily%20Commit.yml/badge.svg)](https://github.com/zb479519891/auto_green/actions/workflows/Daily%20Commit.yml)
 [![Cleanup old Actions runs](https://github.com/zb479519891/auto_green/actions/workflows/Cleanup%20old%20Actions%20runs.yml/badge.svg)](https://github.com/zb479519891/auto_green/actions/workflows/Cleanup%20old%20Actions%20runs.yml)
