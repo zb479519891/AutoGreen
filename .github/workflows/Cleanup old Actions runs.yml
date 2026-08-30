@@ -1,4 +1,4 @@
-name: Cleanup Daily Commit runs
+name: Cleanup old Actions runs
 
 on:
   schedule:
@@ -9,12 +9,11 @@ permissions:
   actions: write
 
 concurrency:
-  group: cleanup-daily-commit-runs
+  group: cleanup-actions-runs
   cancel-in-progress: true
 
 env:
-  KEEP_RECENT: 10
-  TARGET_WORKFLOW: Daily Commit
+  KEEP_RECENT: 5
 
 jobs:
   cleanup:
@@ -22,26 +21,15 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Delete old Daily Commit runs
+      - name: Delete old Actions runs
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
 
-          workflow_id="$(gh api \
-            "repos/${{ github.repository }}/actions/workflows" \
-            --paginate \
-            --jq '.workflows[] | select(.name == env.TARGET_WORKFLOW) | .id' \
-            | head -n 1)"
-
-          if [ -z "$workflow_id" ]; then
-            echo "Workflow '$TARGET_WORKFLOW' not found; nothing to clean."
-            exit 0
-          fi
-
           gh api \
             --paginate \
-            "repos/${{ github.repository }}/actions/workflows/${workflow_id}/runs?per_page=100" \
+            "repos/${{ github.repository }}/actions/runs?per_page=100" \
             --jq '.workflow_runs[] | select(.status == "completed") | [.id, .created_at] | @tsv' \
             | sort -k2 -r \
             | tail -n +$((KEEP_RECENT + 1)) \
